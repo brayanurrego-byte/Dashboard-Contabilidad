@@ -40,7 +40,10 @@ function normalizeRow(row, headers) {
     const hk = findHeader(headers, rk);
     if (hk) {
       const v = String(row[hk] || "").toLowerCase().trim();
-      requirements[rk] = ["cumple", "si", "sí", "ok", "x", "✓", "✔", "listo"].some((w) => v.includes(w));
+      requirements[rk] = v !== "" && v !== "no" && v !== "n/a" && v !== "pendiente" && v !== "falta" && v !== "0" && (
+        ["cumple", "cumplid", "si", "sí", "ok", "x", "✓", "✔", "listo", "lista", "aprobad", "complet", "entregad", "paz y salvo", "al dia", "al día"].some((w) => v.includes(w))
+        || /^\d+$/.test(v) && parseInt(v) > 0
+      );
     } else {
       requirements[rk] = false;
     }
