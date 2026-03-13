@@ -87,8 +87,8 @@ export function StudentsTable({ students, headers }) {
             className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 outline-none focus:border-accent-cyan/30"
           >
             <option value="all">Todos los estados</option>
-            <option value="ready">Listo para grado</option>
-            <option value="paid">Ya pagó</option>
+            <option value="ready">Listo para graduación</option>
+            <option value="authorized">Autorización de pago</option>
             <option value="pending">Pendiente</option>
           </select>
         </div>

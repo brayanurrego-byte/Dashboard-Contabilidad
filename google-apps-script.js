@@ -20,9 +20,9 @@
  *
  * Este script INCLUYE la lectura de colores de fondo de las filas,
  * que el dashboard usa para determinar el estado del estudiante:
- *   - Naranja → Listo para grado
- *   - Verde   → Ya pagó
- *   - Sin color → Pendiente
+ *   - Naranja → Autorización de pago
+ *   - Verde   → Listo para graduación
+ *   - Sin color → Pendiente (falta financiero o académico)
  */
 
 function doGet() {

@@ -4,10 +4,10 @@
  * The Google Apps Script returns a `_backgroundColor` field per row.
  * Google Sheets stores colors as hex strings like "#ff9900", "#93c47d", "#ffffff".
  *
- * Color mapping (configured by ESUMER):
- *   Orange shades → "ready"   (Listo para grado: documentos completos)
- *   Green shades  → "paid"    (Ya pagó todos sus pendientes)
- *   No color      → "pending" (Sin organizar / tiene pendientes)
+ * Color mapping (configurado por ESUMER):
+ *   Naranja → "authorized" (Tiene autorización de pago)
+ *   Verde   → "ready"      (Listo para graduación)
+ *   Sin color / otros → "pending" (Le falta algo financiero o académico)
  */
 
 /** Convert hex to HSL for better range matching */
@@ -36,7 +36,7 @@ function hexToHSL(hex) {
 
 /**
  * Determine student status from row background color.
- * Returns "ready" | "paid" | "pending"
+ * Returns "ready" | "authorized" | "pending"
  */
 export function statusFromColor(bgColor) {
   if (!bgColor || bgColor === "#ffffff" || bgColor === "#FFFFFF") {
@@ -46,19 +46,19 @@ export function statusFromColor(bgColor) {
   const hsl = hexToHSL(bgColor);
   if (!hsl) return "pending";
 
-  // Orange range: hue 15-50°
-  if (hsl.h >= 15 && hsl.h <= 50 && hsl.s > 0.3) {
+  // Green range: hue 80-160° → Listo para graduación
+  if (hsl.h >= 80 && hsl.h <= 160 && hsl.s > 0.2) {
     return "ready";
   }
 
-  // Green range: hue 80-160°
-  if (hsl.h >= 80 && hsl.h <= 160 && hsl.s > 0.2) {
-    return "paid";
+  // Orange range: hue 15-50° → Autorización de pago
+  if (hsl.h >= 15 && hsl.h <= 50 && hsl.s > 0.3) {
+    return "authorized";
   }
 
   // Yellow-orange range: hue 40-60° (some oranges lean yellow in Sheets)
   if (hsl.h >= 40 && hsl.h <= 60 && hsl.s > 0.4) {
-    return "ready";
+    return "authorized";
   }
 
   return "pending";
@@ -66,14 +66,14 @@ export function statusFromColor(bgColor) {
 
 /** Labels for each status */
 export const STATUS_LABELS = {
-  ready: "Listo para grado",
-  paid: "Pagó - En proceso",
-  pending: "Pendiente",
+  ready: "Listo para graduación",
+  authorized: "Autorización de pago",
+  pending: "Pendiente (falta financiero o académico)",
 };
 
 /** Color tokens for each status */
 export const STATUS_COLORS = {
   ready: { bg: "rgba(0,255,136,0.12)", text: "#00ff88", border: "rgba(0,255,136,0.3)" },
-  paid: { bg: "rgba(255,159,67,0.12)", text: "#ff9f43", border: "rgba(255,159,67,0.3)" },
+  authorized: { bg: "rgba(255,159,67,0.12)", text: "#ff9f43", border: "rgba(255,159,67,0.3)" },
   pending: { bg: "rgba(255,71,87,0.12)", text: "#ff4757", border: "rgba(255,71,87,0.3)" },
 };

@@ -21,15 +21,15 @@ const ChartTooltip = ({ active, payload, label }) => {
 
 export function StatusOverview({ students }) {
   const statusData = useMemo(() => [
-    { name: "Listos", value: students.filter((s) => s.status === "ready").length, color: "#00ff88" },
-    { name: "Pagaron", value: students.filter((s) => s.status === "paid").length, color: "#ff9f43" },
+    { name: "Listos para graduación", value: students.filter((s) => s.status === "ready").length, color: "#00ff88" },
+    { name: "Autorización de pago", value: students.filter((s) => s.status === "authorized").length, color: "#ff9f43" },
     { name: "Pendientes", value: students.filter((s) => s.status === "pending").length, color: "#ff4757" },
   ], [students]);
 
   const programData = useMemo(() => {
     const map = {};
     for (const s of students) {
-      if (!map[s.programa]) map[s.programa] = { name: s.programa, ready: 0, paid: 0, pending: 0, total: 0 };
+      if (!map[s.programa]) map[s.programa] = { name: s.programa, ready: 0, authorized: 0, pending: 0, total: 0 };
       map[s.programa][s.status]++;
       map[s.programa].total++;
     }
@@ -37,8 +37,8 @@ export function StatusOverview({ students }) {
   }, [students]);
 
   const levelData = useMemo(() => {
-    const pre = { name: "Pregrado", ready: 0, paid: 0, pending: 0, total: 0 };
-    const post = { name: "Posgrado", ready: 0, paid: 0, pending: 0, total: 0 };
+    const pre = { name: "Pregrado", ready: 0, authorized: 0, pending: 0, total: 0 };
+    const post = { name: "Posgrado", ready: 0, authorized: 0, pending: 0, total: 0 };
     for (const s of students) {
       const target = classifyProgram(s.programa) === "Posgrado" ? post : pre;
       target[s.status]++;
@@ -129,7 +129,7 @@ export function StatusOverview({ students }) {
               />
               <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="ready" name="Listos" fill="#00ff88" stackId="a" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="paid" name="Pagaron" fill="#ff9f43" stackId="a" />
+              <Bar dataKey="authorized" name="Aut. pago" fill="#ff9f43" stackId="a" />
               <Bar dataKey="pending" name="Pendientes" fill="#ff4757" stackId="a" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -149,7 +149,7 @@ export function StatusOverview({ students }) {
               <DonutChart
                 data={[
                   { name: "Listos", value: lv.ready, color: "#00ff88" },
-                  { name: "Pagaron", value: lv.paid, color: "#ff9f43" },
+                  { name: "Aut. pago", value: lv.authorized, color: "#ff9f43" },
                   { name: "Pendientes", value: lv.pending, color: "#ff4757" },
                 ]}
                 centerLabel={lv.name}

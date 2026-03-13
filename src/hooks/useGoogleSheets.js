@@ -69,7 +69,7 @@ function normalizeRow(row, headers) {
     completedReqs,
     totalReqs,
     completionPct: totalReqs > 0 ? (completedReqs / totalReqs) * 100 : 0,
-    status: row._backgroundColor ? statusFromColor(row._backgroundColor) : (completedReqs === totalReqs ? "ready" : completedReqs >= 6 ? "paid" : "pending"),
+    status: row._backgroundColor ? statusFromColor(row._backgroundColor) : (completedReqs === totalReqs ? "ready" : completedReqs >= 6 ? "authorized" : "pending"),
     rawColor: row._backgroundColor || null,
     _raw: row,
   };

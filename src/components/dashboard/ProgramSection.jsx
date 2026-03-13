@@ -10,7 +10,7 @@ function ProgramCard({ program, students }) {
   const [expanded, setExpanded] = useState(false);
 
   const ready = students.filter((s) => s.status === "ready");
-  const paid = students.filter((s) => s.status === "paid");
+  const authorized = students.filter((s) => s.status === "authorized");
   const pending = students.filter((s) => s.status === "pending");
   const advancePct = students.length > 0 ? (ready.length / students.length) * 100 : 0;
 
@@ -30,7 +30,7 @@ function ProgramCard({ program, students }) {
           <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
             <span>{students.length} estudiantes</span>
             <span className="text-status-ready">{ready.length} listos</span>
-            <span className="text-status-paid">{paid.length} pagaron</span>
+            <span className="text-status-paid">{authorized.length} aut. pago</span>
             <span className="text-status-pending">{pending.length} pendientes</span>
           </div>
         </div>

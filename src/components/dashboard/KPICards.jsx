@@ -44,8 +44,8 @@ const kpiConfig = [
     glowClass: "glow-green",
   },
   {
-    key: "paid",
-    label: "Ya pagaron",
+    key: "authorized",
+    label: "Autorización de pago",
     icon: CreditCard,
     color: "#ff9f43",
     glowClass: "glow-orange",
@@ -62,12 +62,12 @@ const kpiConfig = [
 export function KPICards({ students }) {
   const total = students.length;
   const ready = students.filter((s) => s.status === "ready").length;
-  const paid = students.filter((s) => s.status === "paid").length;
+  const authorized = students.filter((s) => s.status === "authorized").length;
   const pending = students.filter((s) => s.status === "pending").length;
   const readyPct = total > 0 ? (ready / total) * 100 : 0;
   const pendingPct = total > 0 ? (pending / total) * 100 : 0;
 
-  const values = { total, ready, paid, pending };
+  const values = { total, ready, authorized, pending };
 
   return (
     <div className="space-y-4">
