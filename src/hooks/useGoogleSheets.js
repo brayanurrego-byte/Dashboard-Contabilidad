@@ -3,7 +3,7 @@ import { statusFromColor } from "../lib/parseColors";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "https://script.google.com/macros/s/AKfycbzetrEeYbHaMdR1QouC0T8WAoC65J_ClxgRT0e_Ja8KH46uhpPoI8LV65Q8cwRRhiVEOQ/exec";
+  "https://script.google.com/macros/s/AKfycbz1jI2BoQUYzIpiUdsT11QnjZ9jNt1TJ9SFU1JCxMK7mFRwod8_cm3gN5ZXU8nGL6GGCA/exec";
 
 const REFRESH_MS = 30_000;
 
