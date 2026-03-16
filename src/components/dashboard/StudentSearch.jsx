@@ -1,9 +1,21 @@
 import { useState, useCallback } from "react";
-import { Search, User, FileText, Hash, X } from "lucide-react";
+import { Search, User, FileText, Hash, X, AlertTriangle, DollarSign } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { useStudentSearch } from "../../hooks/useStudentSearch";
 import { debounce } from "../../lib/utils";
+
+function getReqStyle(status) {
+  if (status === "ok") return { bg: "rgba(0,255,136,0.1)", color: "#00ff88", border: "rgba(0,255,136,0.2)", icon: "✓" };
+  if (status === "na") return { bg: "rgba(0,255,136,0.07)", color: "#66ddaa", border: "rgba(0,255,136,0.15)", icon: "—" };
+  return { bg: "rgba(255,71,87,0.1)", color: "#ff4757", border: "rgba(255,71,87,0.2)", icon: "✗" };
+}
+
+function getReqLabel(status) {
+  if (status === "na") return "N/A";
+  if (status === "ok") return "";
+  return "Pendiente";
+}
 
 function StudentDetail({ student, onClose }) {
   const fields = [
@@ -15,7 +27,6 @@ function StudentDetail({ student, onClose }) {
     { label: "Celular", value: student.celular },
     { label: "Correo", value: student.correo },
     { label: "Empleo", value: student.empleo },
-    { label: "Cartera", value: student.cartera },
   ];
 
   const reqLabels = {
@@ -28,6 +39,11 @@ function StudentDetail({ student, onClose }) {
     "REQUISITO B2": "Requisito B2",
     CARTERA: "Cartera",
   };
+
+  const pendingItems = Object.entries(student.requirements).filter(([, s]) => s === "pending");
+  const hasConditionalNote = student.notasCondicionales && student.notasCondicionales !== "—" && student.notasCondicionales !== "";
+  const hasCarteraValue = student.carteraRaw && student.carteraRaw !== "" && student.carteraRaw !== "—" && student.carteraRaw !== "0"
+    && !["ok", "cumple", "si", "sí", "paz y salvo", "al dia", "al día", "n/a"].includes(student.carteraRaw.toLowerCase());
 
   return (
     <Card className="glass-strong border-accent-cyan/20 animate-fade-up relative">
@@ -50,6 +66,38 @@ function StudentDetail({ student, onClose }) {
         </div>
       </div>
 
+      {/* Cartera (deuda) highlight */}
+      {hasCarteraValue && (
+        <div className="mb-4 px-3 py-2 rounded-lg border"
+          style={{ background: "rgba(255,159,67,0.08)", borderColor: "rgba(255,159,67,0.25)" }}>
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" style={{ color: "#ff9f43" }} />
+            <span className="text-sm font-medium" style={{ color: "#ff9f43" }}>
+              Cartera: {student.carteraRaw}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Conditional notes */}
+      {hasConditionalNote && (
+        <div className="mb-4 px-3 py-2 rounded-lg border"
+          style={{ background: "rgba(255,200,0,0.06)", borderColor: "rgba(255,200,0,0.2)" }}>
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#ffc800" }} />
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider mb-0.5" style={{ color: "#ffc800" }}>
+                Nota condicional
+              </p>
+              <p className="text-sm text-gray-200">{student.notasCondicionales}</p>
+              {student.notasExtra && student.notasExtra !== "" && student.notasExtra !== "—" && (
+                <p className="text-sm text-gray-300 mt-0.5">{student.notasExtra}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
         {fields.map(({ label, value }) => (
           <div key={label} className="text-sm">
@@ -59,25 +107,67 @@ function StudentDetail({ student, onClose }) {
         ))}
       </div>
 
+      {/* Progress bar */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">
+            Avance: {student.completedReqs}/{student.totalReqs}
+          </p>
+          <span className="text-xs font-bold" style={{
+            color: student.completionPct === 100 ? "#00ff88" : student.completionPct >= 75 ? "#ff9f43" : "#ff4757"
+          }}>
+            {Math.round(student.completionPct)}%
+          </span>
+        </div>
+        <div className="w-full h-2 rounded-full bg-white/5">
+          <div className="h-full rounded-full transition-all duration-500" style={{
+            width: `${student.completionPct}%`,
+            background: student.completionPct === 100 ? "#00ff88" : student.completionPct >= 75 ? "#ff9f43" : "#ff4757",
+          }} />
+        </div>
+      </div>
+
       <div className="border-t border-white/5 pt-3">
         <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">
           Requisitos ({student.completedReqs}/{student.totalReqs})
         </p>
         <div className="flex flex-wrap gap-2">
-          {Object.entries(student.requirements).map(([key, ok]) => (
-            <span
-              key={key}
-              className="text-xs px-2 py-1 rounded-md"
-              style={{
-                background: ok ? "rgba(0,255,136,0.1)" : "rgba(255,71,87,0.1)",
-                color: ok ? "#00ff88" : "#ff4757",
-                border: `1px solid ${ok ? "rgba(0,255,136,0.2)" : "rgba(255,71,87,0.2)"}`,
-              }}
-            >
-              {ok ? "✓" : "✗"} {reqLabels[key] || key}
-            </span>
-          ))}
+          {Object.entries(student.requirements).map(([key, status]) => {
+            const style = getReqStyle(status);
+            const extra = getReqLabel(status);
+            return (
+              <span
+                key={key}
+                className="text-xs px-2 py-1 rounded-md"
+                style={{
+                  background: style.bg,
+                  color: style.color,
+                  border: `1px solid ${style.border}`,
+                }}
+              >
+                {style.icon} {reqLabels[key] || key}{extra ? ` (${extra})` : ""}
+              </span>
+            );
+          })}
         </div>
+
+        {/* Pending items summary */}
+        {pendingItems.length > 0 && (
+          <div className="mt-3 px-3 py-2 rounded-lg" style={{ background: "rgba(255,71,87,0.06)", border: "1px solid rgba(255,71,87,0.15)" }}>
+            <p className="text-xs font-medium mb-1" style={{ color: "#ff4757" }}>
+              Pendientes ({pendingItems.length}):
+            </p>
+            <ul className="text-xs text-gray-300 space-y-0.5">
+              {pendingItems.map(([key]) => (
+                <li key={key}>
+                  — {reqLabels[key] || key}: <span style={{ color: "#ff4757" }}>
+                    {student.requirementRawValues?.[key] || "Sin información"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </Card>
   );

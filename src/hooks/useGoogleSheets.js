@@ -36,21 +36,43 @@ function normalizeRow(row, headers) {
 
   const reqKeys = ["CEDULA", "SABER 11", "ACTA DE GRADO", "SABER TYT", "SABER PRO", "ASIGNATURAS", "REQUISITO B2", "CARTERA"];
   const requirements = {};
+  const requirementRawValues = {};
   for (const rk of reqKeys) {
     const hk = findHeader(headers, rk);
     if (hk) {
-      const v = String(row[hk] || "").toLowerCase().trim();
-      requirements[rk] = v !== "" && v !== "no" && v !== "n/a" && v !== "pendiente" && v !== "falta" && v !== "0" && (
-        ["cumple", "cumplid", "si", "sí", "ok", "x", "✓", "✔", "listo", "lista", "aprobad", "complet", "entregad", "paz y salvo", "al dia", "al día"].some((w) => v.includes(w))
-        || /^\d+$/.test(v) && parseInt(v) > 0
-      );
+      const raw = String(row[hk] || "").trim();
+      const v = raw.toLowerCase();
+      requirementRawValues[rk] = raw;
+      if (v === "n/a" || v === "no aplica") {
+        requirements[rk] = "na"; // No aplica — counts as completed
+      } else if (
+        v !== "" && v !== "no" && v !== "pendiente" && v !== "falta" && v !== "0" && (
+          ["cumple", "cumplid", "si", "sí", "ok", "x", "✓", "✔", "listo", "lista", "aprobad", "complet", "entregad", "paz y salvo", "al dia", "al día"].some((w) => v.includes(w))
+          || /^\d+$/.test(v) && parseInt(v) > 0
+        )
+      ) {
+        requirements[rk] = "ok"; // Cumplido
+      } else {
+        requirements[rk] = "pending"; // Pendiente
+      }
     } else {
-      requirements[rk] = false;
+      requirements[rk] = "pending";
+      requirementRawValues[rk] = "";
     }
   }
 
-  const completedReqs = Object.values(requirements).filter(Boolean).length;
+  const completedReqs = Object.values(requirements).filter((v) => v === "ok" || v === "na").length;
   const totalReqs = reqKeys.length;
+
+  // Extract conditional notes from last column(s) — usually yellow cells with annotations
+  const lastHeader = headers[headers.length - 1];
+  const secondLastHeader = headers.length > 1 ? headers[headers.length - 2] : null;
+  const notasCondicionales = String(row[lastHeader] || "").trim();
+  const notasExtra = secondLastHeader ? String(row[secondLastHeader] || "").trim() : "";
+
+  // Extract raw cartera value (amount owed)
+  const hCarteraReq = findHeader(headers, "Cartera", "cartera");
+  const carteraRaw = String(row[hCarteraReq] || "").trim();
 
   const nombre = [row[hNombre1], row[hNombre2]].filter(Boolean).join(" ");
   const apellido = [row[hApellido1], row[hApellido2]].filter(Boolean).join(" ");
@@ -69,11 +91,15 @@ function normalizeRow(row, headers) {
     cartera: row[hCartera] || "—",
     empleo: row[hEmpleo] || "—",
     requirements,
+    requirementRawValues,
     completedReqs,
     totalReqs,
     completionPct: totalReqs > 0 ? (completedReqs / totalReqs) * 100 : 0,
     status: row._backgroundColor ? statusFromColor(row._backgroundColor) : (completedReqs === totalReqs ? "ready" : completedReqs >= 6 ? "authorized" : "pending"),
     rawColor: row._backgroundColor || null,
+    notasCondicionales,
+    notasExtra,
+    carteraRaw,
     _raw: row,
   };
 }
