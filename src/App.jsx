@@ -23,12 +23,21 @@ export default function App() {
   const { students, headers, loading, error, lastUpdate, refreshing, forceRefresh } = useGoogleSheets();
   const [activeTab, setActiveTab] = useState("overview");
 
+  const heroBg = (
+    <div className="hero-bg">
+      <div className="hero-bg__image" />
+      <div className="hero-bg__gradient" />
+      <div className="hero-bg__vignette" />
+    </div>
+  );
+
   // Loading state with skeleton UI
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative">
+        {heroBg}
         <Header refreshing={false} onRefresh={() => {}} />
-        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <main className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
           </div>
@@ -45,9 +54,10 @@ export default function App() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative">
+        {heroBg}
         <Header refreshing={refreshing} onRefresh={forceRefresh} />
-        <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="glass-strong p-8 text-center max-w-lg mx-auto mt-20">
             <AlertCircle className="w-12 h-12 text-status-pending mx-auto mb-4" />
             <h2 className="font-heading font-bold text-xl text-white mb-2">
@@ -68,10 +78,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {heroBg}
       <Header refreshing={refreshing} onRefresh={forceRefresh} />
 
-      <main className="flex-1 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+      <main className="relative z-10 flex-1 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Navigation Tabs */}
         <nav className="flex gap-1 mb-8 overflow-x-auto pb-2">
           {tabs.map((t) => (
